@@ -1,28 +1,47 @@
 package com.sandu.demo.Security;
 
+import com.sandu.demo.Services.AppUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
-import lombok.AllArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@AllArgsConstructor
 public class SecurityConfig {
-    @Bean
-    public SecurityConfig securityConfig(HttpSecurity http) throws Exception{
-      http
-           .formLogin(form -> {
-            form.loginPage(null).permitAll();
-           })
-           .authorizeHttpRequests(registry -> {
-            registry.requestMatchers("/**").permitAll();
-            registry.anyRequest().authenticated();
-           });
 
-      return new SecurityConfig();
+    @Autowired
+    private AppUserService appUserService;
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return appUserService;
     }
 
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(appUserService);
+        return provider;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .formLogin(form -> form
+                .loginPage("/login")
+                .permitAll()
+            )
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/req/signup").permitAll()
+                .anyRequest().authenticated()
+            );
+        return http.build();
+    }
 }
