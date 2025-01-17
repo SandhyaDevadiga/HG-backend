@@ -8,18 +8,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="app_user")
+@Table(name = "app_user")
 public class AppUser {
     @Id
-    @Column(name="id", length=11)
+    @Column(name = "id", length = 11)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
-    @Column(name="username", length=255)
+    @Column(name = "username", length = 255)
     private String username;
-    @Column(name="password", length=255)
+    @Column(name = "password", length = 255)
     private String password;
-    // private String email;
-
 
     public AppUser() {
     }
@@ -30,6 +28,13 @@ public class AppUser {
         this.username = username;
         this.password = password;
     }
+
+    // New constructor without id
+    public AppUser(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
     // Getters and Setters
     public long getId() {
         return id;
@@ -54,6 +59,7 @@ public class AppUser {
     public void setPassword(String password) {
         this.password = password;
     }
+
     @Override
     public String toString() {
         return "AppUser{" +
@@ -62,5 +68,4 @@ public class AppUser {
                 ", password='" + password + '\'' +
                 '}';
     }
-
 }
