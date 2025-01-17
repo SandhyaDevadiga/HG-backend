@@ -22,50 +22,51 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 @Lazy
 public class UserServiceImpl implements UserService, loginService {
-    
+
   @Autowired
   private PasswordEncoder passwordEncoder;
-    @Autowired
-    private AppUserRepo userRepository;
-    @Override
-    public String addUser(AppUserDto user){
-      AppUser newUser = new AppUser(
-        user.getId(),
+  @Autowired
+  private AppUserRepo userRepository;
+
+  @Override
+  public String addUser(AppUserDto user) {
+    // Check if user already exists
+    if (userRepository.findByUsername(user.getUsername()) != null) {
+      throw new RuntimeException("User already exists with username: " + user.getUsername());
+    }
+
+    AppUser newUser = new AppUser(
         user.getUsername(),
-        this.passwordEncoder.encode(user.getPassword())
-      );
-      userRepository.save(newUser);
-      return newUser.getUsername();
-    }
+        this.passwordEncoder.encode(user.getPassword()));
+    userRepository.save(newUser);
+    return newUser.getUsername();
+  }
 
-    @Override
-    public LoginResponse loginUser(LoginDto loginDto){
-      // String msg="";
-      AppUser user1=userRepository.findByUsername(loginDto.getUsername());
-      if(user1!=null){
-        String encodedPassword = user1.getPassword();
-        String password=loginDto.getPassword();
-        Boolean isPwdRight=passwordEncoder.matches(password, encodedPassword);
-        if(isPwdRight){
-           Optional<AppUser> user=userRepository.findByUsernameAndPassword(loginDto.getUsername(), encodedPassword);
-           if(user.isPresent()){
-            return new LoginResponse("login success", true);
+  @Override
+  public LoginResponse loginUser(LoginDto loginDto) {
+    // String msg="";
+    AppUser user1 = userRepository.findByUsername(loginDto.getUsername());
+    if (user1 != null) {
+      String encodedPassword = user1.getPassword();
+      String password = loginDto.getPassword();
+      Boolean isPwdRight = passwordEncoder.matches(password, encodedPassword);
+      if (isPwdRight) {
+        Optional<AppUser> user = userRepository.findByUsernameAndPassword(loginDto.getUsername(), encodedPassword);
+        if (user.isPresent()) {
+          return new LoginResponse("login success", true);
 
-           }
-           else{
-            return new LoginResponse("login Failed", false);
-
-           }
-        }
-        else{
-          return new LoginResponse("Password not Match", false);
+        } else {
+          return new LoginResponse("login Failed", false);
 
         }
+      } else {
+        return new LoginResponse("Password not Match", false);
 
       }
-      else{
-        return new LoginResponse("username not exist", false);
 
-      }
+    } else {
+      return new LoginResponse("username not exist", false);
+
     }
+  }
 }
